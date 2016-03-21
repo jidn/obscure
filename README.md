@@ -1,7 +1,7 @@
 [![build status](https://travis-ci.org/jidn/obscure.svg?branch=master)](https://travis-ci.org/jidn/obscure.svg?branch=masterp)
 ![version](http://img.shields.io/pypi/v/obscure.svg)
 ![license](http://img.shields.io/pypi/l/obscure.svg)
-[![coverage](http://img.shields.io/coveralls/jidn/obscure/master.svg)](https://coveralls.io/r/jidn/obscure)
+![coverage](https://coveralls.io/repos/github/jidn/obscure/badge.svg?branch=master)
 ![downloads](http://img.shields.io/pypi/dm/obscure.svg)
 
 # Obscure
@@ -10,8 +10,8 @@ Showing a steadly increasing sequence of integer IDs leaks information
 to customers, competitors, or malicious entities about the number and
 frequency of customers, inventory, or orders.  Some example include:
 
-  /customer/123
-  /order/308
+    /customer/123
+    /order/308
 
 From these, I would conclude that I am only your 123rd customer with the
 308th order.  How a customer or competitor would feel about this would
