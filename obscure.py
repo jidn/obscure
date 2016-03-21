@@ -21,6 +21,7 @@ as it removes the letters i and u to elimination some common offensive
 words.
 
 Example:
+
     >>> from obscure import Obscure
     >>> customer_id = 123
     >>> num = Obscure(0x1234)
@@ -49,7 +50,7 @@ except ImportError:  # pragma: no cover
 import struct
 import base64
 
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 
 _base32_normal = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
 _base32_custom = "CDEFGHJKLMNPQRSTVWXYZ234567890AB"
