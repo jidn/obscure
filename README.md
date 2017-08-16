@@ -6,7 +6,7 @@
 
 # Obscure
 
-Showing a steadly increasing sequence of integer IDs leaks information
+Showing a steadily increasing sequence of integer IDs leaks information
 to customers, competitors, or malicious entities about the number and
 frequency of customers, inventory, or orders.  Some example include:
 
@@ -20,7 +20,7 @@ information?  In addition, by creating another account or order, I can
 estimate the rate of change within your systems.
 
 This class will help obscure your sequential order by providing a
-reverseable transformation to your numbers.  By using different salts
+reversible transformation to your numbers.  By using different salts
 your transformations will be unique.  In addition, the class gives some
 output helpers for hex, base32, and base64.  There is one I call 'tame'
 as it removes the letters i and u to elimination some common offensive

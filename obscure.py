@@ -1,6 +1,6 @@
 """Obscure numbers through reversable transformation.
 
-Showing a steadly increasing sequence of integer IDs leaks information
+Showing a steadily increasing sequence of integer IDs leaks information
 to customers, competitors, or malicious entities about the number and
 frequency of customers, inventory, or orders.  Some example include:
 
@@ -14,7 +14,7 @@ information?  In addition, by creating another account or order, I can
 estimate the rate of change within your systems.
 
 This class will help obscure your sequential order by providing a
-reverseable transformation to your numbers.  By using different salts
+reversible transformation to your numbers.  By using different salts
 your transformations will be unique.  In addition, the class gives some
 output helpers for hex, base32, and base64.  There is one I call 'tame'
 as it removes the letters i and u to elimination some common offensive
@@ -67,21 +67,45 @@ class Obscure(object):
 
     def __init__(self, salt):
         """Obscure object with unique salt and prime.
+
+        Args:
+            salt (integer): an integer making your transformations unique.
+        """
+        """
         :param salt: an integer making your transformations unique.
         """
         self.salt = salt
         self.prime = 0xc101
 
-    def _mangle16(self, i):
+    def _mangle16(self, x):
         """Produce an 16-bit mangled value based off a 16-bit integer.
+
+        The feistel cipher uses a function each round to mangle the
+        input bits in a way that does not have to be invertable.
+
+        Args:
+            x (integer): 16-bit integer
+
+        Returns:
+            The output of the Feistel Cipher's F(x)
+        """
+        """
         :param i: 16-bit integer
         :returns: 16-bit transformation.
         """
-        i = (self.salt ^ i) * self.prime
-        return i >> (i & 0xf) & 0xffff
+        x = (self.salt ^ x) * self.prime
+        return x >> (x & 0xf) & 0xffff
 
     def transform(self, i):
         """Reversibly transform a 32-bit integer using Feistel cipher.
+
+        Args:
+            i (integer): number to obscure/unobscure
+
+        Returns:
+            The number transformed or restored.
+        """
+        """
         :param i: integer
         :returns: transformed integer so transform(transform(i)) == i
         """
@@ -91,19 +115,43 @@ class Obscure(object):
 
     def encode_hex(self, i):
         """Obscure an integer to hex string.
+
+        Args:
+            i (integer): number to obscure
+
+        Returns:
+            A 7-character custom alphabet base32 string.
+        """
+        """
         :param i: integer
         :returns: 8-character hex string.
         """
         return "%08x" % self.transform(i)
 
     def decode_hex(self, s):
-        """Decode an 8-character hex string, returning the original integer.
+        """Get original number from a 8-charcter hexadecimal string.
+
+        Args:
+            s (str): 8-character hexadecimal string
+
+        Returns:
+            The original integer.
+        """
+        """
         :param s: encoded hex string
         :returns: original integer"""
         return self.transform(int(s, 16))
 
     def encode_base32(self, i):
-        """Obscure an integer and return a base32 string.
+        """Obscure an integer to a base32 string.
+
+        Args:
+            i (integer): number to obscure
+
+        Returns:
+            str: 7-character base32 string
+        """
+        """
         :param i: integer
         :returns: 7-character base32 string.
         """
@@ -113,16 +161,32 @@ class Obscure(object):
         return s[:7]
 
     def decode_base32(self, s):
-        """Decode a base32 string, returning the original integer.
-        :param s: 7-character base32 string
-        :returns: original integer
+        """Get original integer from a base32 string.
+
+        Args:
+            s (str): 7-character base32 string
+
+        Returns:
+            The original integer.
         """
+#        """
+#        :param s: 7-character base32 string
+#        :returns: original integer
+#        """
         return self.transform(struct.unpack('!L', base64.b32decode(s + '='))[0])
 
     def encode_tame(self, i):
-        """Obscure an integer and return a base32 string.
+        """Obscure an integer to a custom alphabet base32 string.
         The base32 alphabet without the letters I and U to eliminate
         common offensive words.
+
+        Args:
+            i (integer): number to obscure
+
+        Returns:
+            A 7-character custom alphabet base32 string.
+        """
+        """
         :param i: integer
         :returns: 7-character custom alphabet base32 string.
         """
@@ -130,14 +194,30 @@ class Obscure(object):
         return s.translate(_encode_trans)
 
     def decode_tame(self, s):
-        """Decode a custom base32 string, returning the original integer.
+        """Get original interger from a custom base32 string.
+
+        Args:
+            s (str): a custom alphabet base32 string
+
+        Returns:
+            The original integer.
+        """
+        """
         :param s: custom encoded, 7-character base32 string
         :returns: original integer
         """
         return self.decode_base32(s.translate(_decode_trans))
 
     def encode_base64(self, i):
-        """Obscure an integer and return a 6-char base64 string.
+        """Obscure an integer to a 6-char base64 string.
+
+        Args:
+            i (integer): number to obscure
+
+        Returns:
+            A 6-character base64 string.
+        """
+        """
         :param i: integer
         :returns: 6-character base64 string
         """
@@ -147,7 +227,15 @@ class Obscure(object):
         return s[:6]
 
     def decode_base64(self, s):
-        """Decode a base64 string, returning the original integer.
+        """Get original integer from a base64 string.
+
+        Args:
+            s (str): 6-character base64 string
+
+        Returns:
+            The original integer.
+        """
+        """
         :param s: 6-character base64 string
         :returns: oritinal integer
         """
@@ -165,13 +253,19 @@ if __name__ == "__main__":  # pragma: no cover
                    help='add number to covert')
     g.add_argument('-t', nargs='+', dest='str',
                    help='string to convert to number')
-    p.add_argument('--mode', choices=('hex', 'tame', 'base32', 'base64'),
+    p.add_argument('--mode', choices=('num', 'hex', 'tame', 'base32', 'base64'),
                    default='tame')
     p.add_argument('--salt', type=int, default=0x1235678)
 
     args = p.parse_args()
     o = Obscure(args.salt)
-    meth = getattr(o, 'encode_' + args.mode)
+    try:
+        meth = getattr(o, 'encode_' + args.mode)
+    except AttributeError as err:
+        if args.mode == 'num':
+            meth = o.transform
+        else:
+            raise
     seq = None
     if args.s:
         seq = range(args.s[0], args.s[1])
@@ -179,7 +273,13 @@ if __name__ == "__main__":  # pragma: no cover
         seq = args.int
     elif args.str:
         seq = args.str
-        meth = getattr(o, 'decode_' + args.mode)
+        try:
+            meth = getattr(o, 'decode_' + args.mode)
+        except AttributeError as err:
+            if args.mode == 'num':
+                meth = lambda x: o.transform(int(x))
+            else:
+                raise
     if seq:
         for i in seq:
             print(meth(i)),
