@@ -4,7 +4,11 @@
 # 
 # This also works with Travis CI
 #
-ENV := .env
+ifdef TRAVIS
+	ENV = $(VIRTUAL_ENV)
+else
+	ENV := .env
+endif
 PROJECT :=
 PACKAGE := ./
 TESTDIR := test
@@ -26,9 +30,6 @@ COVER_ARG := --cov-report term-missing --cov=$(PACKAGE) \
 BIN := $(ENV)/bin
 OPEN := xdg-open
 SYS_VIRTUALENV := virtualenv
-ifdef TRAVIS
-	ENV = $(VIRTUAL_ENV)
-endif
 
 # virtualenv executables
 PIP := $(BIN)/pip
