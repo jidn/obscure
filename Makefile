@@ -38,7 +38,7 @@ PYTHON := $(BIN)/$(python)
 FLAKE8 := $(BIN)/flake8
 PEP257 := $(BIN)/pydocstyle
 COVERAGE := $(BIN)/coverage
-TEST_RUNNER := $(BIN)/pytest
+TEST_RUNNER := $(BIN)/py.test
 
 $(TEST_RUNNER): $(PIP)
 	$(PIP) install pytest | tee -a $(LOG_REQUIRE)
