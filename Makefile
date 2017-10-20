@@ -8,7 +8,7 @@
 PACKAGE =
 TESTDIR = test
 PROJECT :=
-ENV = .env
+ENV = venv
 # Override by putting on commandline:  python=python2.7
 python = python
 REQUIRE = requirements.txt
@@ -41,7 +41,7 @@ SETUP_PY := $(wildcard setup.py)
 SOURCES := $(wildcard *.py)
 EGG_INFO := $(subst -,_,$(PROJECT)).egg-info
 COVER_ARG := --cov-report term-missing --cov=$(PKGDIR) \
-             --cov-config .coveragerc
+	$(if $(wildcard .coveragerc), --cov-config .coveragerc)
 
 # Flags for environment/tools
 LOG_REQUIRE := .requirements.log
@@ -94,13 +94,20 @@ pep257: $(FLAKE8)
 test: $(TEST_RUNNER)
 	$(TEST_RUNNER) $(args) $(TESTDIR)
 
-coverage: $(COVERAGE)
-# NOTE | If PACKAGE is root directory, ie code is not in its own directory,
-#      | then you should use a .coveragerc file to omit the ENV directory
-#      | from the coverage search.
-#      | $ echo -e "[run]\nomit=$(ENV)/*" > .coveragerc
-#      | append "--cov-config .coveragerc" to COVER_ARG
-	$(TEST_RUNNER) $(args) $(COVER_ARG) $(TESTDIR)
+coverage: $(COVERAGE) .coveragerc
+	echo $(TEST_RUNNER) $(args) $(COVER_ARG) $(TESTDIR)
+
+.coveragerc:
+ifeq ($(PKGDIR),./)
+ifeq (,$(wildcard $(.coveragerc)))
+	# If PKGDIR is root directory, ie code is not in its own directory
+	# then you should use a .coveragerc file to remove the ENV directory
+	# from the coverage search.  I'll auto generate one for you.
+	$(info Rerun make to discover autocreated .coveragerc)
+	@echo -e "[run]\nomit=$(ENV)/*" > .coveragerc; cat .coveragerc
+	@exit 1
+endif
+endif
 
 $(COVERAGE): $(PIP)
 	$(PIP) install pytest-cov | tee -a $(LOG_REQUIRE)

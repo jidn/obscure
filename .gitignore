@@ -16,6 +16,7 @@ develop-eggs/
 dist/
 env/
 .env/
+venv/
 sdist/
 .installed.cfg
 *.egg-info/
