@@ -21,7 +21,6 @@ endif
 # System paths
 BIN := $(ENV)/bin
 OPEN := xdg-open
-SYS_VIRTUALENV := virtualenv
 
 # virtualenv executables
 PIP := $(BIN)/pip
@@ -56,7 +55,7 @@ ci: test
 env: $(PIP) $(LOG_REQUIRE)
 $(PIP):
 	$(info "Environment is $(ENV)")
-	test -d $(ENV) || $(SYS_VIRTUALENV) --python $(python) $(ENV)
+	test -d $(ENV) || python -m venv $(ENV)
 
 $(LOG_REQUIRE): $(REQUIREMENTS)
 	for f in $(REQUIREMENTS); do \
@@ -65,7 +64,7 @@ $(LOG_REQUIRE): $(REQUIREMENTS)
 	touch $@
 
 help:
-	@echo "env        Create virtualenv and install requirements"
+	@echo "env        Create virtual environment and install requirements"
 	@echo "             python=PYTHON_EXE   interpreter to use, default=python"
 	@echo "check      Run style checks"
 	@echo "test       TEST_RUNNER on '$(TESTDIR)'"
@@ -95,7 +94,7 @@ test: $(TEST_RUNNER)
 	$(TEST_RUNNER) $(args) $(TESTDIR)
 
 coverage: $(COVERAGE) .coveragerc
-	echo $(TEST_RUNNER) $(args) $(COVER_ARG) $(TESTDIR)
+	$(TEST_RUNNER) $(args) $(COVER_ARG) $(TESTDIR)
 
 .coveragerc:
 ifeq ($(PKGDIR),./)

@@ -2,36 +2,37 @@ import sys
 import pytest
 import context
 import obscure
+
 if sys.version_info.major >= 3:
     xrange = range
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def ob():
-    return obscure.Obscure(0x3c96)
+    return obscure.Obscure(0x3C96)
 
 
 def test_transform(ob):
     for i in xrange(0, 0x10000, 0xFF):
         x = ob.transform(i)
-        assert x < 0xFFFFffff
+        assert x < 0xFFFFFFFF
         assert i == ob.transform(x)
 
 
 def test_unique_low(ob):
     transformed = {ob.transform(i) for i in xrange(100)}
     assert 100 == len(transformed)
-    assert all([x < 0xFFFFffff for x in transformed])
+    assert all([x < 0xFFFFFFFF for x in transformed])
 
 
 def test_unique_high(ob):
     transformed = {ob.transform(i) for i in xrange(0xFFFF, 0xFF90, -1)}
-    assert 0xFFFF - 0xff90 == len(transformed)
-    assert all([x < 0xFFFFffff for x in transformed])
+    assert 0xFFFF - 0xFF90 == len(transformed)
+    assert all([x < 0xFFFFFFFF for x in transformed])
 
 
 def count_bits(integer):
-    return len([_ for _ in bin(integer) if _ is '1'])
+    return len([_ for _ in bin(integer) if _ == "1"])
 
 
 def test_bits_changed(ob):
@@ -52,13 +53,14 @@ def test_salts(ob):
         assert 10 <= changed
 
 
-@pytest.mark.parametrize('method,size', (('hex', 8), ('base64', 6),
-                                         ('base32', 7), ('tame', 7)))
+@pytest.mark.parametrize(
+    "method,size", (("hex", 8), ("base64", 6), ("base32", 7), ("tame", 7))
+)
 def test_encoding(method, size):
     """Try the different encoder/decoder"""
-    ob = obscure.Obscure(0xc3c3)
-    encoder = getattr(ob, 'encode_' + method)
-    decoder = getattr(ob, 'decode_' + method)
+    ob = obscure.Obscure(0xC3C3)
+    encoder = getattr(ob, "encode_" + method)
+    decoder = getattr(ob, "decode_" + method)
     for i in xrange(0, 0x1000, 0xFF):
         s = encoder(i)
         assert size == len(s)
@@ -76,7 +78,7 @@ def test_hex(ob):
 
 def test_base32(ob):
     all_base32 = set(iter(obscure._base32_normal))
-    for i in xrange(0, 0x1000, 0xff):
+    for i in xrange(0, 0x1000, 0xFF):
         s = ob.encode_base32(i)
         assert 7 == len(s)
         assert set(iter(s)).issubset(all_base32)
@@ -84,13 +86,13 @@ def test_base32(ob):
 
 def test_tame(ob):
     all_tame = set(iter(obscure._base32_custom))
-    for i in xrange(0, 0x1000, 0xff):
+    for i in xrange(0, 0x1000, 0xFF):
         s = ob.encode_tame(i)
         assert 7 == len(s)
         assert set(iter(s)).issubset(all_tame)
 
 
 def test_base64(ob):
-    for i in xrange(0, 0x1000, 0xff):
+    for i in xrange(0, 0x1000, 0xFF):
         s = ob.encode_base64(i)
         assert 6 == len(s)

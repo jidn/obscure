@@ -43,6 +43,7 @@ Example:
     123
 """
 import sys
+
 try:
     from string import maketrans as _maketrans
 except ImportError:  # pragma: no cover
@@ -50,7 +51,7 @@ except ImportError:  # pragma: no cover
 import struct
 import base64
 
-__version__ = '1.0.1'
+__version__ = "1.0.1"
 
 _base32_normal = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
 _base32_custom = "CDEFGHJKLMNPQRSTVWXYZ234567890AB"
@@ -75,7 +76,7 @@ class Obscure(object):
         :param salt: an integer making your transformations unique.
         """
         self.salt = salt
-        self.prime = 0xc101
+        self.prime = 0xC101
 
     def _mangle16(self, x):
         """Produce an 16-bit mangled value based off a 16-bit integer.
@@ -94,7 +95,7 @@ class Obscure(object):
         :returns: 16-bit transformation.
         """
         x = (self.salt ^ x) * self.prime
-        return x >> (x & 0xf) & 0xffff
+        return x >> (x & 0xF) & 0xFFFF
 
     def transform(self, i):
         """Reversibly transform a 32-bit integer using Feistel cipher.
@@ -109,8 +110,8 @@ class Obscure(object):
         :param i: integer
         :returns: transformed integer so transform(transform(i)) == i
         """
-        l = i & 0xffff
-        h = i >> 16 & 0xffff ^ self._mangle16(l)
+        l = i & 0xFFFF
+        h = i >> 16 & 0xFFFF ^ self._mangle16(l)
         return ((l ^ self._mangle16(h)) << 16) + h
 
     def encode_hex(self, i):
@@ -155,9 +156,9 @@ class Obscure(object):
         :param i: integer
         :returns: 7-character base32 string.
         """
-        s = base64.b32encode(struct.pack('!L', self.transform(i)))
+        s = base64.b32encode(struct.pack("!L", self.transform(i)))
         if sys.version_info.major == 3:  # pragma: no cover
-            s = s.decode('ascii')
+            s = s.decode("ascii")
         return s[:7]
 
     def decode_base32(self, s):
@@ -169,11 +170,11 @@ class Obscure(object):
         Returns:
             The original integer.
         """
-#        """
-#        :param s: 7-character base32 string
-#        :returns: original integer
-#        """
-        return self.transform(struct.unpack('!L', base64.b32decode(s + '='))[0])
+        #        """
+        #        :param s: 7-character base32 string
+        #        :returns: original integer
+        #        """
+        return self.transform(struct.unpack("!L", base64.b32decode(s + "="))[0])
 
     def encode_tame(self, i):
         """Obscure an integer to a custom alphabet base32 string.
@@ -221,9 +222,9 @@ class Obscure(object):
         :param i: integer
         :returns: 6-character base64 string
         """
-        s = base64.urlsafe_b64encode(struct.pack('!L', self.transform(i)))
+        s = base64.urlsafe_b64encode(struct.pack("!L", self.transform(i)))
         if sys.version_info.major == 3:  # pragma: no cover
-            s = s.decode('ascii')
+            s = s.decode("ascii")
         return s[:6]
 
     def decode_base64(self, s):
@@ -239,30 +240,36 @@ class Obscure(object):
         :param s: 6-character base64 string
         :returns: oritinal integer
         """
-        return self.transform(struct.unpack('!L',
-                              base64.urlsafe_b64decode(s + '=='))[0])
+        return self.transform(
+            struct.unpack("!L", base64.urlsafe_b64decode(s + "=="))[0]
+        )
 
 
 if __name__ == "__main__":  # pragma: no cover
     import argparse
+
     p = argparse.ArgumentParser()
     g = p.add_mutually_exclusive_group()
-    g.add_argument('-s', nargs=2, type=int, metavar=('START', 'STOP'),
-                   help='start stop of convert sequence')
-    g.add_argument('-i', nargs='+', dest='int', type=int,
-                   help='add number to covert')
-    g.add_argument('-t', nargs='+', dest='str',
-                   help='string to convert to number')
-    p.add_argument('--mode', choices=('num', 'hex', 'tame', 'base32', 'base64'),
-                   default='tame')
-    p.add_argument('--salt', type=int, default=0x1235678)
+    g.add_argument(
+        "-s",
+        nargs=2,
+        type=int,
+        metavar=("START", "STOP"),
+        help="start stop of convert sequence",
+    )
+    g.add_argument("-i", nargs="+", dest="int", type=int, help="add number to covert")
+    g.add_argument("-t", nargs="+", dest="str", help="string to convert to number")
+    p.add_argument(
+        "--mode", choices=("num", "hex", "tame", "base32", "base64"), default="tame"
+    )
+    p.add_argument("--salt", type=int, default=0x1235678)
 
     args = p.parse_args()
     o = Obscure(args.salt)
     try:
-        meth = getattr(o, 'encode_' + args.mode)
+        meth = getattr(o, "encode_" + args.mode)
     except AttributeError as err:
-        if args.mode == 'num':
+        if args.mode == "num":
             meth = o.transform
         else:
             raise
@@ -274,9 +281,9 @@ if __name__ == "__main__":  # pragma: no cover
     elif args.str:
         seq = args.str
         try:
-            meth = getattr(o, 'decode_' + args.mode)
+            meth = getattr(o, "decode_" + args.mode)
         except AttributeError as err:
-            if args.mode == 'num':
+            if args.mode == "num":
                 meth = lambda x: o.transform(int(x))
             else:
                 raise
