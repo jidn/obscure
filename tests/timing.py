@@ -1,10 +1,10 @@
 import sys
 import timeit
-from obscure import Obscure
+from obscure.feistel import Obscure
 
 COUNT = 10
 RANGE = 100000
-g = Obscure(0x382231ac)
+g = Obscure(0x382231AC)
 if sys.version_info.major == 3:
     xrange = range
 
@@ -46,9 +46,10 @@ def tame_test():
 def show_results(result):
     global COUNT, RANGE
     per_pass = 1000000 * (result / COUNT)
-    print('  %.2f usec/pass' % per_pass)
+    print("  %.2f usec/pass" % per_pass)
     per_item = per_pass / RANGE
-    print('  %.2f usec/item' % per_item)
+    print("  %.2f usec/item" % per_item)
+
 
 if __name__ == "__main__":
     if True:
@@ -68,24 +69,31 @@ if __name__ == "__main__":
 
     if False:
         print("pack/unpack")
-        t = timeit.Timer("unpack('!L', pack('!L', 0xc101))",
-                         "from struct import pack, unpack")
+        t = timeit.Timer(
+            "unpack('!L', pack('!L', 0xc101))", "from struct import pack, unpack"
+        )
         show_results(t.timeit())
 
         print("base32 encode/decode")
-        t = timeit.Timer("b32decode(b32encode(pack('!L', 0xc101)))",
-                         "from struct import pack, unpack; "
-                         "from base64 import b32decode, b32encode")
+        t = timeit.Timer(
+            "b32decode(b32encode(pack('!L', 0xc101)))",
+            "from struct import pack, unpack; "
+            "from base64 import b32decode, b32encode",
+        )
         show_results(t.timeit())
 
         print("base64 encode/decode")
-        t = timeit.Timer("b64decode(b64encode(pack('!L', 0xc101), '-_'), '-_')",
-                         "from struct import pack, unpack; "
-                         "from base64 import b64decode, b64encode")
+        t = timeit.Timer(
+            "b64decode(b64encode(pack('!L', 0xc101), '-_'), '-_')",
+            "from struct import pack, unpack; "
+            "from base64 import b64decode, b64encode",
+        )
         show_results(t.timeit())
 
         print("base64 urlsafe encode/decode")
-        t = timeit.Timer("urlsafe_b64decode(urlsafe_b64encode(pack('!L', 0xc101)))",
-                         "from struct import pack, unpack; "
-                         "from base64 import urlsafe_b64decode, urlsafe_b64encode")
+        t = timeit.Timer(
+            "urlsafe_b64decode(urlsafe_b64encode(pack('!L', 0xc101)))",
+            "from struct import pack, unpack; "
+            "from base64 import urlsafe_b64decode, urlsafe_b64encode",
+        )
         show_results(t.timeit())

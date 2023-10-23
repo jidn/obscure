@@ -1,0 +1,3 @@
+-r dev.txt
+tox     # test over multiple python versions
+twine   # upload to pypi

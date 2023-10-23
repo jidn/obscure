@@ -5,21 +5,20 @@
 # This also works with Travis CI
 #
 # PACKAGE = Source code directory or leave empty
-PACKAGE =
-TESTDIR = test
+PACKAGE = src
+TESTDIR = tests
 PROJECT :=
-ENV = venv
-# Override by putting on commandline:  python=python2.7
+VENV = venv
+# Override by putting on commandline:  python=python3.8
 python = python
-REQUIRE = requirements.txt
 PEP8_IGNORE := E501,E123
 PEP257_IGNORE := D104,D203
 ##############################################################################
 ifdef TRAVIS
-	ENV = $(VIRTUAL_ENV)
+	VENV = $(VIRTUAL_ENV)
 endif
 # System paths
-BIN := $(ENV)/bin
+BIN := $(VENV)/bin
 OPEN := xdg-open
 
 # virtualenv executables
@@ -28,22 +27,12 @@ TOX := $(BIN)/tox
 PYTHON := $(BIN)/$(python)
 FLAKE8 := $(BIN)/flake8
 PEP257 := $(BIN)/pydocstyle
-COVERAGE := $(BIN)/coverage
-TEST_RUNNER := $(BIN)/py.test
-$(TEST_RUNNER): $(PIP)
-	$(PIP) install pytest | tee -a $(LOG_REQUIRE)
 
 # Project settings
 PKGDIR := $(or $(PACKAGE), ./)
-REQUIREMENTS := $(shell find ./ -name $(REQUIRE))
 SETUP_PY := $(wildcard setup.py)
 SOURCES := $(wildcard *.py)
 EGG_INFO := $(subst -,_,$(PROJECT)).egg-info
-COVER_ARG := --cov-report term-missing --cov=$(PKGDIR) \
-	$(if $(wildcard .coveragerc), --cov-config .coveragerc)
-
-# Flags for environment/tools
-LOG_REQUIRE := .requirements.log
 
 ### Main Targets #############################################################
 .PHONY: all env ci help
@@ -52,23 +41,29 @@ all: check test
 # Target for Travis
 ci: test
 
-env: $(PIP) $(LOG_REQUIRE)
+venv: $(PIP)
 $(PIP):
-	$(info "Environment is $(ENV)")
-	test -d $(ENV) || python -m venv $(ENV)
+	# Create the virtual enviornment
+	$(info "Environment is $(VENV)")
+	python -m venv $(VENV)
+	$(PIP) install --upgrade pip
+	@# pip install the requirements/base.txt
+	@test -f requirements/base.txt && $(PIP) install -qr requirements/base.txt || true
+	@# With pyproject.toml, pip install this directory as editable
+	@test -f pyproject.toml && $(PIP) install -qe . || true
+	@# public service announcement
+	@echo "Remember to activate the virtual environment."
+	@echo "  . venv/bin/activate"
 
-$(LOG_REQUIRE): $(REQUIREMENTS)
-	for f in $(REQUIREMENTS); do \
-	  $(PIP) install -r $$f | tee -a $(LOG_REQUIRE); \
-	done
-	touch $@
+pip: $(PIP)
+	pip install --upgrade -r requirements/$(lastword $(MAKECMDGOALS))
 
 help:
-	@echo "env        Create virtual environment and install requirements"
+	@echo "venv       Create virtual environment and install requirements"
 	@echo "             python=PYTHON_EXE   interpreter to use, default=python"
+	@echo "pip FILE   Install requirements/FILE"
 	@echo "check      Run style checks"
-	@echo "test       TEST_RUNNER on '$(TESTDIR)'"
-	@echo "             args=\"-x --pdb --ff\"  optional arguments"
+	@echo "test       $(TESTDIR)"/
 	@echo "coverage   Get coverage information, optional 'args' like test"
 	@echo "tox        Test against multiple versions of python"
 	@echo "upload     Upload package to PyPI"
@@ -79,7 +74,7 @@ help:
 check: flake8 pep257
 
 $(FLAKE8): $(PIP)
-	$(PIP) install --upgrade flake8 pydocstyle | tee -a $(LOG_REQUIRE)
+	$(PIP) install --upgrade flake8 pydocstyle
 
 flake8: $(FLAKE8)
 	$(FLAKE8) $(or $(PACKAGE), $(SOURCES)) $(TESTDIR) --ignore=$(PEP8_IGNORE)
@@ -88,34 +83,36 @@ pep257: $(FLAKE8)
 	$(PEP257) $(or $(PACKAGE), $(SOURCES)) $(ARGS) --ignore=$(PEP257_IGNORE)
 
 ### Testing ##################################################################
-.PHONY: test coverage tox
+.PHONY: test tox
 
-test: $(TEST_RUNNER)
-	$(TEST_RUNNER) $(args) $(TESTDIR)
+test: $(VENV)/bin/py.test
+	$(VENV)/bin/py.test
 
-coverage: $(COVERAGE) .coveragerc
-	$(TEST_RUNNER) $(args) $(COVER_ARG) $(TESTDIR)
+$(VENV)/bin/py.test: $(PIP)
+	$(PIP) install -qr requirements/test.txt
+
 
 .coveragerc:
 ifeq ($(PKGDIR),./)
 ifeq (,$(wildcard $(.coveragerc)))
 	# If PKGDIR is root directory, ie code is not in its own directory
-	# then you should use a .coveragerc file to remove the ENV directory
+	# then you should use a .coveragerc file to remove the VENV directory
 	# from the coverage search.  I'll auto generate one for you.
 	$(info Rerun make to discover autocreated .coveragerc)
-	@echo -e "[run]\nomit=$(ENV)/*" > .coveragerc; cat .coveragerc
+	@echo -e "[run]\nomit=$(VENV)/*" > .coveragerc; cat .coveragerc
 	@exit 1
 endif
 endif
 
-$(COVERAGE): $(PIP)
-	$(PIP) install pytest-cov | tee -a $(LOG_REQUIRE)
+coverage:
+	coverage run -m pytest
+	coverage report
 
 tox: $(TOX)
 	$(TOX)
 
 $(TOX): $(PIP)
-	$(PIP) install tox | tee -a $(LOG_REQUIRE)
+	$(PIP) install tox
 
 ### Cleanup ##################################################################
 .PHONY: clean clean-env clean-all clean-build clean-test clean-dist
@@ -123,7 +120,7 @@ $(TOX): $(PIP)
 clean: clean-dist clean-test clean-build
 
 clean-env: clean
-	-@rm -rf $(ENV)
+	-@rm -rf $(VENV)
 	-@rm -rf .tox
 
 clean-all: clean clean-env
@@ -151,7 +148,7 @@ authors:
 	echo "Authors\n=======\n\nA huge thanks to all of our contributors:\n\n" > AUTHORS.md
 	git log --raw | grep "^Author: " | cut -d ' ' -f2- | cut -d '<' -f1 | sed 's/^/- /' | sort | uniq >> AUTHORS.md
 
-register: 
+register:
 	$(PYTHON) setup.py register -r pypi
 
 dist: test

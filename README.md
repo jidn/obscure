@@ -36,24 +36,24 @@ $ pip install obscure
 
 # Example
 
+   $python -m obscure --bits=64 --demo 0 1 2 3
+
 ```python
->>> from obscure import Obscure
->>> customer_id = 123
->>> num = Obscure(0x1234)
->>> num.transform(customer_id)
+>>> from obscure import FeistelCipher, Encoder
+>>> cipher = FeistelCipher(bits=64)
+# For a consistant transformations between instances,give a
+# salt and small prime for the Feistel cipher's round function
+>>> cipher = FeistelCipher(0x1234, 0xc101, bits=64)
+>>> numeric_id = 1234
+>>> cipher(numeric_id)
 249699227
->>> num.transform(249699227)
-123
->>> num.encode_hex(customer_id)
-'0ee21b9b'
->>> num.encode_base32(customer_id)
-'B3RBXGY'
->>> num.decode_base32(num.encode_base32(customer_id))
-123
->>> num.encode_base64(customer_id)
-'DuIbmw'
->>> num.encode_tame(customer_id)
-'JB4XFK5'
->>> num.decode_tame(num.encode_tame(customer_id))
-123
+# Reverse the transformation
+>>> cipher(cipher(numeric_id))
+1234
+# Use an Encoder to wrap the Feistel cipher
+>>> encoder = Encoder(Feistel, "base32")
+>>> encoder.encode(numeric_id)
+"XXX"
+>>> encoder.decode('XXX")
+1234
 ```
