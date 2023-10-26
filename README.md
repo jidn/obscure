@@ -8,21 +8,21 @@
 
 Showing a steadily increasing sequence of integer IDs leaks information
 to customers, competitors, or malicious entities about the number and
-frequency of customers, inventory, or orders.  Some example include:
+frequency of customers, inventory, or orders. Some example include:
 
     /customer/123
     /order/308
 
 From these, I would conclude that I am only your 123rd customer with the
-308th order.  How a customer or competitor would feel about this would
-differ.  However, the point is do I really want others to know this
-information?  In addition, by creating another account or order, I can
+308th order. How a customer or competitor would feel about this would
+differ. However, the point is do I really want others to know this
+information? In addition, by creating another account or order, I can
 estimate the rate of change within your systems.
 
 This class will help obscure your sequential order by providing a
-reversible transformation to your numbers.  By using different salts
-your transformations will be unique.  In addition, the class gives some
-output helpers for hex, base32, and base64.  There is one I call 'tame'
+reversible transformation to your numbers. By using different salts
+your transformations will be unique. In addition, the class gives some
+output helpers for hex, base32, and base64. There is one I call 'tame'
 as it removes the letters i and u to elimination some common offensive
 words.
 
@@ -36,7 +36,7 @@ $ pip install obscure
 
 # Example
 
-   $python -m obscure --bits=64 --demo 0 1 2 3
+$python -m obscure --bits=64 --demo 0 1 2
 
 ```python
 >>> from obscure import FeistelCipher, Encoder
