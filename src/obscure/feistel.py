@@ -1,4 +1,4 @@
-"""Feistel cipher
+"""Feistel cipher.
 
 A Feistel cipher can reversibly tranform a number from one value to
 another. A Feistel cipher with its F(x) function are included.
@@ -11,7 +11,6 @@ However, writing your own F(x) is a trivial matter.
 [Right]       [Left]/
 
 Example:
-
     Create a 32-bit Feistel cipher using default F(x) with a
     random prime and salt.
 
@@ -28,7 +27,6 @@ Example:
     Now, the algoritm will produce the same results every time.
 
 Feistel algorithm:
-
     Partition the given value equally; (L[0], R[0])
     Let F(x, Optinal[K]) = a function taking a data block and a subkey
     and returns one output of the same size as the data block.
@@ -39,7 +37,10 @@ Feistel algorithm:
 
 Reference:
     https://en.wikipedia.org/wiki/Feistel_cipher
+
 """
+
+from __future__ import annotations  # Remove when supporting python3.10+
 import functools
 import random
 import typing
@@ -51,7 +52,7 @@ random.seed()
 
 
 def feistel_fx(salt: int, prime: int, value: int) -> int:
-    """A round function `F(x)` for a Feistel cipher.
+    """Round function `F(x)` for a Feistel cipher.
 
     Args:
         prime: A small prime number. https://t5k.org/lists/small/1000.txt
@@ -60,13 +61,14 @@ def feistel_fx(salt: int, prime: int, value: int) -> int:
 
     Returns:
         a mutated number
+
     """
     x = (salt ^ value) * prime
     return x >> (value & 0xF)
 
 
 def FeistelFx(salt: int | None = None, prime: int | None = None) -> IntInt:
-    """Create a Feistel round function `F(x)`
+    """Create a Feistel round function `F(x)`.
 
     Args:
         prime: A small prime number.
@@ -82,7 +84,17 @@ def FeistelFx(salt: int | None = None, prime: int | None = None) -> IntInt:
     return functools.partial(feistel_fx, s, p)
 
 
-def create_feistel_cipher(fx: IntInt, bits: int, rounds):
+def create_feistel_cipher(fx: IntInt, bits: int, rounds: int):
+    """Return default function for given parameters.
+
+    Args:
+        fx: Transform function taking an int and returning another int.
+        bits: Max size of function, usually 32 or 64.
+        rounds: Number of transformation rounds.
+
+    Returns:
+        Feistel cipher function
+    """
     if not isinstance(bits, int) or 1 == bits % 2:
         raise ValueError("bits must be an even integer, usually 32 or 64.")
     full_mask = (1 << bits) - 1
@@ -132,17 +144,15 @@ def FeistelCipher(
 
 
 class Encoder:
+    """Bidirectional transfrom between integer and string."""
+
     def __init__(self, feistel: IntInt | None, encoding: str = ""):
         """Create an encoder/decoder using a Feistel cipher.
 
         Args:
             feistel: A Feistel cipher function or create a random cipher.
             encoding: One of "base32", "base64", or "hex"
-            encoder: The encoder function, default(str)
-            decoder: The decoder function, default(int)
-            bits: Bits for creating a Feistel cipher, default(32)
         """
-
         if feistel is None:
             self.func = FeistelCipher(None, 32)
         elif callable(feistel):
@@ -188,43 +198,6 @@ class Encoder:
             The number.
         """
         return self.transform(self.decoder(text))
-
-
-def Obscure(salt: int):
-    """The version 1 simple Feistel version."""
-
-    return Encoder(version1_feistel(salt), "num")
-
-
-def version1_feistel(salt: int | None = None) -> IntInt:
-    """Create the Feistel cipher used in version 1.
-
-    Args:
-        salt: A number making your transformations unique.
-            If None, use a random integer.
-
-    Example:
-
-        >>> cipher = version1_feistel(4049)
-        >>> [cipher(x) for x in (1, 0xFFFF, 0xFFFFFFFF)]
-        [3363954640, 3034109006, 2074028977]
-    """
-
-    if salt is None:
-        salt = random.randint(1, 0xFFFFFF)
-
-    def feistel(value: int) -> int:
-        """Version 1 Feistel cipher."""
-
-        def mangle16(x):
-            x = (salt ^ x) * 0xC101
-            return x >> (x & 0xF) & 0xFFFF
-
-        left = 0xFFFF & value
-        right = 0xFFFF & (value >> 16) ^ mangle16(left)
-        return ((left ^ mangle16(right)) << 16) | right
-
-    return feistel
 
 
 # https://t5k.org/lists/small/1000.txt

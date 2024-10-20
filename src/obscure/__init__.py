@@ -1,4 +1,4 @@
-"""Obscure
+"""Obscure a number with reversible algorithm.
 
 The "obscure" package is a Python library designed to provide a secure
 and reversible transformation for numeric IDs. It employs the Feistel
@@ -113,6 +113,7 @@ So, while your data may seem like a deck of cards lost in a magical
 whirlwind, fear not—our Feistel cipher knows the trick to bring them
 back, just as good as new!
 """
+
 from .feistel import Encoder, FeistelCipher, FeistelFx
 from .encoder import (
     encodings,

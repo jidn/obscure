@@ -4,7 +4,7 @@ import pytest
 
 import obscure
 import tests.shared_data as data
-from obscure.feistel import Encoder, FeistelCipher, Obscure, version1_feistel
+from obscure.feistel import Encoder, FeistelCipher
 
 
 def test_feistel_domain_boundary(feistel32):
@@ -21,23 +21,6 @@ def test_feistel_make_fx():
 def test_feistel_random_salt_prime():
     f = FeistelCipher(None, None)
     assert all([0 <= f(x) for x in (0, 101038)])
-
-
-def test_feistel_v1():
-    """Version 1 returns previous documentation results.
-
-    There is the Feistel cipher and the Encoder wrapper.
-    """
-    v1 = version1_feistel(data.salt)
-    assert [data.v1[_] for _ in (1, 2, 3)] == [v1(_) for _ in (1, 2, 3)]
-
-    v1 = Obscure(data.salt)
-    assert [data.v1[_] for _ in (1, 2, 3)] == [v1.transform(_) for _ in (1, 2, 3)]
-
-
-def test_feistel_v1_random_salt():
-    v1 = version1_feistel()
-    assert all([0 <= v1(x) for x in (0, 101038)])
 
 
 def test_feistel_ex_bits_invalid():

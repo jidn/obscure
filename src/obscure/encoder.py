@@ -1,11 +1,12 @@
-"""Encoding/Decoding numbers.
-"""
+"""Encoding/Decoding numbers."""
+
 import base64
 import typing
 
 Encode = typing.Callable[[int], str]
 Decode = typing.Callable[[str], int]
 _b32_alphabet_rfc4348: bytes = base64._b32alphabet  # type: ignore
+# Crockford eliminates some letter/number confusion
 _b32_crockford = b"0123456789ABCDEFGHJKMNPQRSTVWXYZ"  # Excludes 'ILOU'
 _b32_crockford_encode = bytes.maketrans(_b32_alphabet_rfc4348, _b32_crockford)
 _b32_crockford_decode = bytes.maketrans(_b32_crockford, _b32_alphabet_rfc4348)
@@ -22,7 +23,7 @@ def hex_decode(text: str) -> int:
 
 
 def _get_minimum_num_bytes(number: int) -> int:
-    """Returns minimum number of bytes needed to represent the given number.
+    """Return minimum number of bytes needed to represent the given number.
 
     Args:
         number: The int value to be represented.
@@ -34,7 +35,7 @@ def _get_minimum_num_bytes(number: int) -> int:
 
 
 def _add_padding(text: str, base: int) -> str:
-    """Adds padding to an encoded string if needed.
+    """Add padding to an encoded string if needed.
 
     Args:
         text: The Base32/Base64 encoded string to pad.
@@ -51,7 +52,7 @@ def _add_padding(text: str, base: int) -> str:
 
 
 def base32_encode(number: int) -> str:
-    """Encodes an integer to base32 using the Crockford alphabet.
+    """Encode number to base32 using the Crockford alphabet.
 
     Example:
         >>> base32_encode(0)
@@ -60,7 +61,7 @@ def base32_encode(number: int) -> str:
     if number < 0:
         raise ValueError("Non-negative number is required.")
     return (
-        base64.b32encode(number.to_bytes(_get_minimum_num_bytes(number)))
+        base64.b32encode(number.to_bytes(_get_minimum_num_bytes(number), "big"))
         .translate(_b32_crockford_encode)
         .decode("utf-8")
         .rstrip("=")
@@ -68,7 +69,7 @@ def base32_encode(number: int) -> str:
 
 
 def base32_decode(text: str) -> int:
-    """Decodes a base32 string using the Crockford alphabet to an integer.
+    """Decode base32 string using the Crockford alphabet.
 
     Example:
         >>> base32_decode('00')
@@ -78,28 +79,40 @@ def base32_decode(text: str) -> int:
     btext = btext.translate(_b32_crockford_decode)
 
     try:
-        return int.from_bytes(base64.b32decode(btext))
+        return int.from_bytes(base64.b32decode(btext), "big")
     except ValueError:
         # Handle invalid base32 strings
         raise ValueError("Invalid base32 string")
 
 
 def base64_encode(number: int) -> str:
+    """Encode number to base64.
+
+    Example:
+        >>> base64_encode(101038)
+        'AYqu'
+    """
     if number < 0:
         raise ValueError("Non-negative number is required.")
     return (
-        base64.urlsafe_b64encode(number.to_bytes(_get_minimum_num_bytes(number)))
+        base64.urlsafe_b64encode(number.to_bytes(_get_minimum_num_bytes(number), "big"))
         .decode("utf-8")
         .rstrip("=")
     )
 
 
 def base64_decode(text: str) -> int:
+    """Decode base64 string.
+
+    Example:
+        >>> base64_decode('AYqu')
+        101038
+    """
     btext = _add_padding(text, 64).encode("utf-8")
     try:
-        return int.from_bytes(base64.urlsafe_b64decode(btext))
+        return int.from_bytes(base64.urlsafe_b64decode(btext), "big")
     except ValueError:
-        # Handle invalid base32 strings
+        # Handle invalid base64 strings
         raise ValueError("Invalid base64 string")
 
 

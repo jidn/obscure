@@ -1,10 +1,8 @@
-import pytest
-
 import tests.shared_data as data
 from obscure.__main__ import main
+from obscure.encoder import hex_encode
 
-_FEISTEL = f"--bits=32 --prime={data.prime} --salt={data.salt}"
-_V1 = f"--salt={data.salt} --v1"
+_FEISTEL = f"--prime={data.prime} --salt={data.salt} -b 32"
 
 
 def test_main_help(capsys):
@@ -34,23 +32,11 @@ def test_main_decode(capsys):
     assert 0 == int(out)
 
 
-def test_main_encode_v1(capsys):
-    main(f"{_V1} 0".split())
+def test_main_decode_implied(capsys):
+    encoded = hex_encode(data.fx[0])
+    main(f"{_FEISTEL} --mode hex {encoded}".split())
     out = capsys.readouterr().out.strip()
-    assert data.v1[0] == int(out)
-
-
-@pytest.mark.parametrize("cmdline", ("--v1 0", "0"))
-def test_main_random_cipher_args(capsys, cmdline):
-    main(cmdline.split())
-    out = capsys.readouterr().out.strip()
-    assert 0 <= int(out)
-
-
-def test_main_decode_v1(capsys):
-    main(f"{_V1} --decode {data.v1[0]}".split())
-    out = capsys.readouterr().out.strip()
-    assert "0" == out
+    assert 0 == int(out)
 
 
 def test_main_demo(capsys):
