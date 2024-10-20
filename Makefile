@@ -8,25 +8,27 @@
 PACKAGE = src
 TESTDIR = tests
 PROJECT :=
-VENV = venv
-# Override by putting on commandline:  python=python3.8
-python = python
+# Override by putting on commandline:  python=3.8
+PYTHON :=
+PYTHON_VENV:= venv_$(PYTHON)
 PEP8_IGNORE := E501,E123
-PEP257_IGNORE := D104,D203
+PEP257_IGNORE := D104,D203,D213,D406,D407,D413
+VENV = $(VIRTUAL_ENV)
 ##############################################################################
-ifdef TRAVIS
-	VENV = $(VIRTUAL_ENV)
-endif
 # System paths
 BIN := $(VENV)/bin
 OPEN := xdg-open
+#
+# Executables I expect to exist.  Not python modules
+EXECUTABLES = uv
+K := $(foreach exec,$(EXECUTABLES),\
+        $(if $(shell which $(exec)),some string,$(error "No $(exec) in PATH")))
+
 
 # virtualenv executables
-PIP := $(BIN)/pip
-TOX := $(BIN)/tox
-PYTHON := $(BIN)/$(python)
-FLAKE8 := $(BIN)/flake8
-PEP257 := $(BIN)/pydocstyle
+FLAKE8 := $(VENV)/bin/flake8
+PEP257 := $(VENV)/bin/pydocstyle
+NOX := $(VENV)/bin/nox
 
 # Project settings
 PKGDIR := $(or $(PACKAGE), ./)
@@ -34,47 +36,51 @@ SETUP_PY := $(wildcard setup.py)
 SOURCES := $(wildcard *.py)
 EGG_INFO := $(subst -,_,$(PROJECT)).egg-info
 
+### Help #####################################################################
+help:
+	@echo "venv       Create virtual environment and install dependencies"
+	@echo "             PYTHON=VERSION ie 3.9, 3.12.7"
+	@echo "check      Run style checks"
+	@echo "test       Run tests in $(TESTDIR)"/
+	@echo "coverage   Get coverage information, optional 'args' like test"
+	@echo "nox        Test against multiple versions of python"
+	@echo "upload     Upload package to PyPI"
+	@echo "clean clean-all  Clean up and clean up removing virtualenv"
+
 ### Main Targets #############################################################
+.ONESHELL:
 .PHONY: all env ci help
 all: check test
 
 # Target for Travis
 ci: test
 
-venv: $(PIP)
-$(PIP):
+venv:
 	# Create the virtual enviornment
-	$(info "Environment is $(VENV)")
-	python -m venv $(VENV)
-	$(PIP) install --upgrade pip
-	@# pip install the requirements/base.txt
-	@test -f requirements/base.txt && $(PIP) install -qr requirements/base.txt || true
-	@# With pyproject.toml, pip install this directory as editable
-	@test -f pyproject.toml && $(PIP) install -qe . || true
-	@# public service announcement
+ifeq ($(PYTHON),)
+		@echo "create using default python"
+		@uv venv $(PYTHON_VENV)
+else
+		@echo "create using python $(PYTHON)"
+		uv venv --python=$(PYTHON) $(PYTHON_VENV)
+endif
+	# Activate the virtual environment for the correct version
+	. $(PYTHON_VENV)/bin/activate
+
+	@# Install project dependencies
+	@test -f pyproject.toml && uv pip install -r pyproject.toml --extra dev || true
+	@# Install directory as editable
+	@test -f pyproject.toml && uv pip install -e . || true
+	@# Public Service Announcement
 	@echo "Remember to activate the virtual environment."
-	@echo "  . venv/bin/activate"
-
-pip: $(PIP)
-	pip install --upgrade -r requirements/$(lastword $(MAKECMDGOALS))
-
-help:
-	@echo "venv       Create virtual environment and install requirements"
-	@echo "             python=PYTHON_EXE   interpreter to use, default=python"
-	@echo "pip FILE   Install requirements/FILE"
-	@echo "check      Run style checks"
-	@echo "test       $(TESTDIR)"/
-	@echo "coverage   Get coverage information, optional 'args' like test"
-	@echo "tox        Test against multiple versions of python"
-	@echo "upload     Upload package to PyPI"
-	@echo "clean clean-all  Clean up and clean up removing virtualenv"
+	@echo "  . $(PYTHON_VENV)/bin/activate"
 
 ### Static Analysis & Travis CI ##############################################
 .PHONY: check flake8 pep257
 check: flake8 pep257
 
-$(FLAKE8): $(PIP)
-	$(PIP) install --upgrade flake8 pydocstyle
+$(FLAKE8):
+	uv pip install --upgrade flake8 pydocstyle
 
 flake8: $(FLAKE8)
 	$(FLAKE8) $(or $(PACKAGE), $(SOURCES)) $(TESTDIR) --ignore=$(PEP8_IGNORE)
@@ -83,13 +89,13 @@ pep257: $(FLAKE8)
 	$(PEP257) $(or $(PACKAGE), $(SOURCES)) $(ARGS) --ignore=$(PEP257_IGNORE)
 
 ### Testing ##################################################################
-.PHONY: test tox
+.PHONY: test nox
 
 test: $(VENV)/bin/py.test
 	$(VENV)/bin/py.test
 
-$(VENV)/bin/py.test: $(PIP)
-	$(PIP) install -qr requirements/test.txt
+$(VENV)/bin/py.test:
+	@test -f pyproject.toml && uv pip install -r pyproject.toml --extra dev || true
 
 
 .coveragerc:
@@ -105,14 +111,15 @@ endif
 endif
 
 coverage:
+	# You should be using src/  See .coveragerc target
 	coverage run -m pytest
-	coverage report
+	coverage report --show-missing
 
-tox: $(TOX)
-	$(TOX)
+nox: $(NOX)
+	$(NOX)
 
-$(TOX): $(PIP)
-	$(PIP) install tox
+$(NOX):
+	uv pip install nox
 
 ### Cleanup ##################################################################
 .PHONY: clean clean-env clean-all clean-build clean-test clean-dist
@@ -120,8 +127,8 @@ $(TOX): $(PIP)
 clean: clean-dist clean-test clean-build
 
 clean-env: clean
-	-@rm -rf $(VENV)
-	-@rm -rf .tox
+	rm -rf venv_*
+	rm -rf .nox
 
 clean-all: clean clean-env
 
@@ -149,35 +156,22 @@ authors:
 	git log --raw | grep "^Author: " | cut -d ' ' -f2- | cut -d '<' -f1 | sed 's/^/- /' | sort | uniq >> AUTHORS.md
 
 register:
-	$(PYTHON) setup.py register -r pypi
+	$(PYTHON_BIN) setup.py register -r pypi
 
 dist: test
-	$(PYTHON) setup.py sdist
-	$(PYTHON) setup.py bdist_wheel
+	$(PYTHON_BIN) setup.py sdist
+	$(PYTHON_BIN) setup.py bdist_wheel
 
 upload: .git-no-changes register
-	$(PYTHON) setup.py sdist upload -r pypi
-	$(PYTHON) setup.py bdist_wheel upload -r pypi
+	$(PYTHON_BIN) setup.py sdist upload -r pypi
+	$(PYTHON_BIN) setup.py bdist_wheel upload -r pypi
 
 .git-no-changes:
 	@if git diff --name-only --exit-code;         \
 	then                                          \
-		echo Git working copy is clean...;        \
+		echo Git working copy is clean ...;         \
 	else                                          \
-		echo ERROR: Git working copy is dirty!;   \
-		echo Commit your changes and try again.;  \
-		exit -1;                                  \
+		echo ERROR: Git working copy is dirty!;     \
+		echo Commit your changes and try again.;    \
+		exit -1;                                    \
 	fi;
-
-### System Installation ######################################################
-.PHONY: develop install download
-# Is this section really needed?
-
-develop:
-	$(PYTHON) setup.py develop
-
-install:
-	$(PYTHON) setup.py install
-
-download:
-	$(PIP) install $(PROJECT)

@@ -5,7 +5,10 @@ description = "Create reversable transformations to obscure sequental ID numbers
 readme = "README.md"
 #license = { file = "LICENSE.rst" }
 maintainers = [{name = "Clinton James", email = "clinton+obscure@jidn.com"},]
-requires-python = ">=3.7"
+requires-python = ">=3.9"
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-cov"]
 
 [project.urls]
 Homepage = "https://github.com/jidn/obscure"
@@ -34,36 +37,3 @@ ignore-init-module-imports = true
 
 [tool.ruff.pydocstyle]
 convention = "google"
-
-# [tool.setuptools_scm]
-
-[tool.tox]
-legacy_tox_ini = """
-[tox]
-env_list = lint, type, py{38,310,311}
-isolated_build = true
-
-[testenv]
-description = run pytest
-usedevelop=True
-deps=
-  pytest
-  coverage
-commands=
-  coverage erase
-  py.test tests {posargs:tests}
-
-[testenv:lint]
-description = run linters
-skip_install = true
-deps =
-    ruff
-commands = ruff {posargs:.}
-
-[testenv:type]
-description = run type checks
-deps =
-    mypy>=0.991
-commands =
-    mypy {posargs:src tests}
-"""
