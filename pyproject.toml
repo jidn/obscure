@@ -1,14 +1,19 @@
 [project]
-version = "0.1.3"
 name = "obscure"
 description = "Create reversable transformations to obscure sequental ID numbers."
+version = "1.0.0"
 readme = "README.md"
-#license = { file = "LICENSE.rst" }
-maintainers = [{name = "Clinton James", email = "clinton+obscure@jidn.com"},]
 requires-python = ">=3.9"
+maintainers = [{name = "Clinton James", email = "clinton+obscure@jidn.com"},]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
 
 [project.optional-dependencies]
 dev = ["pytest", "pytest-cov"]
+pkg = ["build", "twine"]
 
 [project.urls]
 Homepage = "https://github.com/jidn/obscure"
@@ -17,11 +22,11 @@ Issues = "https://github.com/jidn/obscure/issues"
 Source = "https://github.com/jidn/obscure"
 
 [build-system]
-requires = ["setuptools>=61.0", "setuptools-scm"]
+#requires = ["setuptools>=61.0", "setuptools-scm"]
+requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.pytest.ini_options]
-# filterwarnings = ["error"]
 addopts = "-rfEX --strict-markers --doctest-modules"
 minversion = "6.0"
 testpaths = ["src", "tests"]
@@ -33,7 +38,23 @@ source = ["src"]
 source = ["src", "tests"]
 
 [tool.ruff]
-ignore-init-module-imports = true
+line-length = 88
+select = [
+    "C",  # mccabe rules
+    "F",  # pyflakes rules
+    "E",  # pycodestyle error rules
+    "W",  # pycodestyle warning rules
+    "B",  # flake8-bugbear rules
+    "I",  # isort rules
+]
+ignore = [
+    "C901",  # max-complexity-10
+    "E501",  # line-too-long
+]
 
-[tool.ruff.pydocstyle]
+[tool.ruff.format]
+indent-style = "space"
+quote-style = "single"
+
+[tool.ruff.lint.pydocstyle]
 convention = "google"

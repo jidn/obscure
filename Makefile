@@ -29,6 +29,7 @@ K := $(foreach exec,$(EXECUTABLES),\
 FLAKE8 := $(VENV)/bin/flake8
 PEP257 := $(VENV)/bin/pydocstyle
 NOX := $(VENV)/bin/nox
+TWINE := $(VENV)/BIN/twine
 
 # Project settings
 PKGDIR := $(or $(PACKAGE), ./)
@@ -119,7 +120,7 @@ nox: $(NOX)
 	$(NOX)
 
 $(NOX):
-	uv pip install nox
+	uv pip install --upgrade nox
 
 ### Cleanup ##################################################################
 .PHONY: clean clean-env clean-all clean-build clean-test clean-dist
@@ -146,7 +147,7 @@ clean-test:
 clean-dist:
 	-@rm -rf dist build
 
-### Release ##################################################################
+### Packaging ##################################################################
 # For more information on creating packages for PyPI see the writeup at
 # http://peterdowns.com/posts/first-time-with-pypi.html
 .PHONY: authors register dist upload .git-no-changes
@@ -158,9 +159,15 @@ authors:
 register:
 	$(PYTHON_BIN) setup.py register -r pypi
 
-dist: test
-	$(PYTHON_BIN) setup.py sdist
-	$(PYTHON_BIN) setup.py bdist_wheel
+build:
+	python -m build
+
+upload-test: $(TWINE)
+	python -m twine check --strict dist/*
+	python -m twine upload --repository testpypi --config-file ~/.pypirc dist/*
+
+$(TWINE):
+	uv pip install --upgrade twine
 
 upload: .git-no-changes register
 	$(PYTHON_BIN) setup.py sdist upload -r pypi
