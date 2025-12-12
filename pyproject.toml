@@ -1,19 +1,25 @@
 [project]
 name = "obscure"
-description = "Create reversable transformations to obscure sequental ID numbers."
-version = "1.0.0"
+version = "1.0.4"
+description = "Create reversible transformations to obscure sequential ID numbers."
 readme = "README.md"
 requires-python = ">=3.9"
-maintainers = [{name = "Clinton James", email = "clinton+obscure@jidn.com"},]
+license = "MIT"
+license-files = ["LICENSE*"]
+authors = [{ name = "Clinton James", email = "clinton+obscure@jidn.com" }]
+keywords = ["obfuscate", "feistel", "ids"]
 classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Operating System :: OS Independent",
 ]
-
-[project.optional-dependencies]
-dev = ["pytest", "pytest-cov"]
-pkg = ["build", "twine"]
 
 [project.urls]
 Homepage = "https://github.com/jidn/obscure"
@@ -21,10 +27,23 @@ Documentation = "https://github.com/jidn/obscure#readme"
 Issues = "https://github.com/jidn/obscure/issues"
 Source = "https://github.com/jidn/obscure"
 
+# uv-native workflow groups: `uv sync --group dev`, etc.
+[dependency-groups]
+test = ["pytest", "pytest-cov"]
+lint = ["ruff", "pre-commit"]
+pkg = ["build", "twine"]
+dev = [
+  { include-group = "test" },
+  { include-group = "lint" },
+  { include-group = "pkg" },
+]
+
 [build-system]
-#requires = ["setuptools>=61.0", "setuptools-scm"]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.pytest.ini_options]
 addopts = "-rfEX --strict-markers --doctest-modules"
@@ -39,22 +58,13 @@ source = ["src", "tests"]
 
 [tool.ruff]
 line-length = 88
-select = [
-    "C",  # mccabe rules
-    "F",  # pyflakes rules
-    "E",  # pycodestyle error rules
-    "W",  # pycodestyle warning rules
-    "B",  # flake8-bugbear rules
-    "I",  # isort rules
-]
-ignore = [
-    "C901",  # max-complexity-10
-    "E501",  # line-too-long
-]
+
+lint.select = ["C", "F", "E", "W", "B", "I"]
+lint.ignore = ["C901", "E501"]
 
 [tool.ruff.format]
 indent-style = "space"
-quote-style = "single"
+quote-style = "double"
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

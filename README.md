@@ -57,3 +57,5 @@ $python -m obscure --bits=64 --demo 0 1 2
 >>> encoder.decode('XXX")
 1234
 ```
+
+# License MIT

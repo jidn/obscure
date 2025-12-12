@@ -26,33 +26,33 @@ def test_feistel_random_salt_prime():
 def test_feistel_ex_bits_invalid():
     with pytest.raises(ValueError) as ex:
         FeistelCipher(None, None, bits=31)
-    assert 'must be an even int' in str(ex)
+    assert "must be an even int" in str(ex)
 
 
 def test_feistel_ex_not_in_domain():
     with pytest.raises(ValueError) as ex:
         FeistelCipher(None, None, bits=32)(-1)
-    assert 'not within domain' in str(ex)
+    assert "not within domain" in str(ex)
 
 
 def test_encoder():
-    encoder = Encoder(None, 'base32')
+    encoder = Encoder(None, "base32")
     assert 101038 == encoder.decode(encoder.encode(101038))
 
 
 def test_encoder_ex_parameter_feistel():
     with pytest.raises(ValueError) as ex:
-        Encoder(typing.cast(None, 123), 'num')
-    assert 'is neither a FeistelCipher' in str(ex)
+        Encoder(typing.cast(None, 123), "num")
+    assert "is neither a FeistelCipher" in str(ex)
 
 
 def test_encoder_ex_parameter_encoding():
     with pytest.raises(ValueError) as ex:
-        Encoder(None, 'unknown')
-    assert 'is not one of' in str(ex)
+        Encoder(None, "unknown")
+    assert "is not one of" in str(ex)
 
 
-@pytest.mark.parametrize('domain_bits', (16, 32, 64, 128))
+@pytest.mark.parametrize("domain_bits", (16, 32, 64, 128))
 def test_feistel_uniform_distribution(domain_bits):
     func = obscure.FeistelCipher(0xC101, 0x3C96, bits=domain_bits)
     transformed: typing.List[int] = []

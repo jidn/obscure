@@ -125,4 +125,4 @@ from .encoder import (
 )
 from .feistel import Encoder, FeistelCipher, FeistelFx
 
-__all__ = ['Encoder', 'FeistelCipher', 'FeistelFx', 'encodings']
+__all__ = ["Encoder", "FeistelCipher", "FeistelFx", "encodings"]
