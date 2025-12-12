@@ -1,4 +1,5 @@
 import subprocess
+
 import nox
 
 
@@ -43,14 +44,14 @@ def uv_available_versions() -> list[tuple[int, int]]:  # type: ignore
 
         # Get unique (major, minor) version from each line
         # fmt: off
-        versions = sorted(set( # sorted, unique
-            [tuple(map(int,  # major.minor as tuple[int]
+        versions = sorted({ # sorted, unique
+            tuple(map(int,  # major.minor as tuple[int]
             _.split()[0]     # the first column
             .split("-")[1]   # the version number
             .split(".")[:2]  # the major.minor numbers
             ))
             for _ in lines
-        ]))
+        })
         # fmt: on
         return versions  # type: ignore
 

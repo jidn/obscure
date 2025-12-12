@@ -1,9 +1,10 @@
 import pytest
+
 import obscure.encoder as change
 
 
 def test_hex():
-    all_hex = set("0123456789abcdef")
+    all_hex = set('0123456789abcdef')
     for i in range(0, 0x1000, 0xFF):
         txt = change.hex_encode(i)
         assert set(txt).issubset(all_hex)
@@ -12,7 +13,7 @@ def test_hex():
 
 def test_base32_round_trip():
     """Test encode/decode round trip."""
-    alphabet = set(change._b32_crockford.decode("utf-8"))
+    alphabet = set(change._b32_crockford.decode('utf-8'))
     for i in range(0, 0x1F000, 0x1FF):
         b32_str = change.base32_encode(i)
         # Is it reversable
@@ -23,13 +24,13 @@ def test_base32_round_trip():
 
 def test_base32_0():
     """Make sure we see '00' the Crockford alphabet. 'AA' is RFC 4648."""
-    assert "00" == change.base32_encode(0)
-    assert 0 == change.base32_decode("00")
+    assert '00' == change.base32_encode(0)
+    assert 0 == change.base32_decode('00')
 
 
 def test_base64_round_trip():
     """Test encode/decode round trip."""
-    alphabet = set("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_")
+    alphabet = set('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_')
     seen = set()
     for i in range(0, 0xFFFFFFFF, 0xFFFFF):
         b64_str = change.base64_encode(i)
@@ -47,7 +48,7 @@ def test_encode_base32_ex_bad_input():
 
 def test_decode_base32_ex():
     with pytest.raises(ValueError):
-        change.base32_decode("AEIOU-1")
+        change.base32_decode('AEIOU-1')
 
 
 def test_encode_base64_ex_bad_input():
@@ -57,4 +58,4 @@ def test_encode_base64_ex_bad_input():
 
 def test_decode_base64_ex():
     with pytest.raises(ValueError):
-        change.base64_decode("0==")
+        change.base64_decode('0==')

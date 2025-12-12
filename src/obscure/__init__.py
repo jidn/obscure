@@ -114,7 +114,6 @@ whirlwind, fear not—our Feistel cipher knows the trick to bring them
 back, just as good as new!
 """
 
-from .feistel import Encoder, FeistelCipher, FeistelFx
 from .encoder import (
     encodings,
     # base32_decode,
@@ -124,5 +123,6 @@ from .encoder import (
     # hex_decode,
     # hex_encode,
 )
+from .feistel import Encoder, FeistelCipher, FeistelFx
 
-__all__ = ["Encoder", "FeistelCipher", "FeistelFx", "encodings"]
+__all__ = ['Encoder', 'FeistelCipher', 'FeistelFx', 'encodings']

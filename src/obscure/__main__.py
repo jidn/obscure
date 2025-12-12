@@ -5,7 +5,7 @@ import argparse
 from .encoder import Encode, encodings
 from .feistel import Encoder, FeistelCipher
 
-_encodings = sorted(set(_ for _ in encodings.keys()))
+_encodings = sorted(set(encodings.keys()))
 _examples = """Example:
   Encode numbers 0 and 100 for given prime and salt.
 
@@ -24,7 +24,7 @@ _examples = """Example:
 
   $ python -m obscure {0} --mode=base64 p3MN4A
   100
-      """.format("-p 4999 -s 1357 -b 32")
+      """.format('-p 4999 -s 1357 -b 32')
 # """.format("--prime=4999 --salt=1357 --bits=32")
 
 
@@ -33,34 +33,34 @@ def main(cmdline=None):
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    parser.add_argument("--demo", action="store_true", help="show all modes")
-    parser.add_argument("--decode", action="store_true")
+    parser.add_argument('--demo', action='store_true', help='show all modes')
+    parser.add_argument('--decode', action='store_true')
     parser.add_argument(
-        "--mode",
-        dest="encoding",
+        '--mode',
+        dest='encoding',
         choices=_encodings,
-        default="num",
-        help="default(num)",
+        default='num',
+        help='default(num)',
     )
     parser.add_argument(
-        "-p",
-        "--prime",
+        '-p',
+        '--prime',
         type=int,
-        metavar="NUM",
-        help="cipher small prime, default(random)",
+        metavar='NUM',
+        help='cipher small prime, default(random)',
     )
     parser.add_argument(
-        "-s", "--salt", metavar="NUM", type=int, help="cipher salt, default(random)"
+        '-s', '--salt', metavar='NUM', type=int, help='cipher salt, default(random)'
     )
     parser.add_argument(
-        "-b",
-        dest="bits",
+        '-b',
+        dest='bits',
         type=int,
         choices=(32, 64),
-        help="cipher bits in domain, default(64)",
+        help='cipher bits in domain, default(64)',
         default=64,
     )
-    parser.add_argument("values", nargs=argparse.REMAINDER)
+    parser.add_argument('values', nargs=argparse.REMAINDER)
     parser.epilog = _examples
 
     args = parser.parse_args(cmdline)
@@ -68,7 +68,7 @@ def main(cmdline=None):
         parser.print_help()
         return
 
-    if "num" != args.encoding:
+    if 'num' != args.encoding:
         # Decode is implied. Needed as base32 and base64 could be all numbers
         args.decode = True
     else:
@@ -79,18 +79,18 @@ def main(cmdline=None):
     encoder = Encoder(FeistelCipher(args.salt, args.prime, args.bits), args.encoding)
 
     if not args.demo:
-        coder = getattr(encoder, ("decode" if args.decode else "encode"))
-        print(" ".join(str(coder(i)) for i in args.values))
+        coder = getattr(encoder, ('decode' if args.decode else 'encode'))
+        print(' '.join(str(coder(i)) for i in args.values))
     else:
-        if args.decode or args.encoding != "num":
-            print("Demo is only for encoding numbers.")
+        if args.decode or args.encoding != 'num':
+            print('Demo is only for encoding numbers.')
             return
 
         for encoding in _encodings:
             meth: Encode = encodings[encoding][0]
             values = [meth(encoder.transform(int(i))) for i in args.values]
-            print(f"{encoding}:  ", values)
+            print(f'{encoding}:  ', values)
 
 
-if __name__ == "__main__":  # pragma: no cover
+if __name__ == '__main__':  # pragma: no cover
     main()

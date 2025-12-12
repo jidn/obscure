@@ -41,6 +41,7 @@ Reference:
 """
 
 from __future__ import annotations  # Remove when supporting python3.10+
+
 import functools
 import random
 import typing
@@ -96,13 +97,13 @@ def create_feistel_cipher(fx: IntInt, bits: int, rounds: int):
         Feistel cipher function
     """
     if not isinstance(bits, int) or 1 == bits % 2:
-        raise ValueError("bits must be an even integer, usually 32 or 64.")
+        raise ValueError('bits must be an even integer, usually 32 or 64.')
     full_mask = (1 << bits) - 1
     mask = full_mask >> (full_mask.bit_length() // 2)
 
     def feistel_cipher(value: int) -> int:
         if value < 0 or value > full_mask:
-            raise ValueError("value is not within domain")
+            raise ValueError('value is not within domain')
 
         # Split the input value into two halves
         lefty = mask & (value >> mask.bit_length())
@@ -146,7 +147,7 @@ def FeistelCipher(
 class Encoder:
     """Bidirectional transfrom between integer and string."""
 
-    def __init__(self, feistel: IntInt | None, encoding: str = ""):
+    def __init__(self, feistel: IntInt | None, encoding: str = ''):
         """Create an encoder/decoder using a Feistel cipher.
 
         Args:
@@ -158,13 +159,13 @@ class Encoder:
         elif callable(feistel):
             self.func = feistel
         else:
-            raise ValueError("feistel is neither a FeistelCipher nor None")
+            raise ValueError('feistel is neither a FeistelCipher nor None')
         try:
             self.encoder, self.decoder = encodings[encoding]
         except KeyError as ex:
             raise ValueError(
-                f"{ex!r} is not one of {[str(_) for _ in encodings.keys()]!r}"
-            )
+                f'{ex!r} is not one of {[str(_) for _ in encodings.keys()]!r}'
+            ) from ex
 
     def transform(self, number: int) -> int:
         """Reversibly transform an integer.

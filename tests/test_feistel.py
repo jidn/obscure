@@ -15,44 +15,44 @@ def test_feistel_domain_boundary(feistel32):
 
 def test_feistel_make_fx():
     f = FeistelCipher(data.salt, data.prime)
-    assert all([data.fx[x] == f(x) for x in (0, 101038, 0xFFFFFFFF)])
+    assert all(data.fx[x] == f(x) for x in (0, 101038, 0xFFFFFFFF))
 
 
 def test_feistel_random_salt_prime():
     f = FeistelCipher(None, None)
-    assert all([0 <= f(x) for x in (0, 101038)])
+    assert all(0 <= f(x) for x in (0, 101038))
 
 
 def test_feistel_ex_bits_invalid():
     with pytest.raises(ValueError) as ex:
         FeistelCipher(None, None, bits=31)
-    assert "must be an even int" in str(ex)
+    assert 'must be an even int' in str(ex)
 
 
 def test_feistel_ex_not_in_domain():
     with pytest.raises(ValueError) as ex:
         FeistelCipher(None, None, bits=32)(-1)
-    assert "not within domain" in str(ex)
+    assert 'not within domain' in str(ex)
 
 
 def test_encoder():
-    encoder = Encoder(None, "base32")
+    encoder = Encoder(None, 'base32')
     assert 101038 == encoder.decode(encoder.encode(101038))
 
 
 def test_encoder_ex_parameter_feistel():
     with pytest.raises(ValueError) as ex:
-        Encoder(typing.cast(None, 123), "num")
-    assert "is neither a FeistelCipher" in str(ex)
+        Encoder(typing.cast(None, 123), 'num')
+    assert 'is neither a FeistelCipher' in str(ex)
 
 
 def test_encoder_ex_parameter_encoding():
     with pytest.raises(ValueError) as ex:
-        Encoder(None, "unknown")
-    assert "is not one of" in str(ex)
+        Encoder(None, 'unknown')
+    assert 'is not one of' in str(ex)
 
 
-@pytest.mark.parametrize("domain_bits", (16, 32, 64, 128))
+@pytest.mark.parametrize('domain_bits', (16, 32, 64, 128))
 def test_feistel_uniform_distribution(domain_bits):
     func = obscure.FeistelCipher(0xC101, 0x3C96, bits=domain_bits)
     transformed: typing.List[int] = []
@@ -84,7 +84,7 @@ def is_uniform_distribution(sequence: typing.Sequence[int], domain: int):
     expected = len(sequence) / num_bins
 
     # Initialize a dictionary to count the observed frequency in each bin.
-    observed = {i: 0 for i in range(num_bins)}
+    observed = dict.fromkeys(range(num_bins), 0)
 
     # Calculate the observed frequency in each bin.
     per_bin = domain // num_bins
